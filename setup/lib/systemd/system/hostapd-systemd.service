@@ -1,0 +1,13 @@
+[Unit]
+Description=hostapd service
+Wants=network-manager.service
+After=network-manager.service
+Wants=module-init-tools.service
+After=module-init-tools.service
+ConditionPathExists=/etc/hostapd/access_point.conf
+
+[Service]
+ExecStart=/usr/sbin/hostapd /etc/hostapd/access_point.conf
+
+[Install]
+WantedBy=multi-user.target
