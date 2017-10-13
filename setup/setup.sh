@@ -22,13 +22,11 @@ apt-get --assume-yes dist-upgrade
 apt-get autoremove --purge
 
 # FIXME Setup the keyboard automatically, SSH at boot -- disable for prod -- and networking
-# TODO Maybe remove dos2unix
-apt-get --assume-yes install lighttpd dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev python3-dev i2c-tools python3-pip dos2unix
+apt-get --assume-yes install lighttpd dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev python3-dev i2c-tools python3-pip
 #apt-get --assume-yes install rng-tools ntpdate python-arrow python-picamera busybox-syslogd
 #dpkg --purge rsyslog
 
 pip3 install paho-mqtt
-pip3 install wifi
 
 lighttpd-enable-mod cgi
 service lighttpd force-reload
