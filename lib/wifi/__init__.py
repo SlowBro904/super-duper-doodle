@@ -33,16 +33,17 @@ def defaults():
 
 def config(ssid, passphrase = None, enc_type = None, hidden = False):
     '''Sets up our Wi-Fi network in /etc/wpa_supplicant/wpa_supplicant.conf'''
+    # FIXME Can't ping after setting all this. See what I missed.
     timestamp = datetime.now().strftime('%Y-%m-%d.%H-%M')
 
     defaults()
 
     cmd("wpa_cli ap_scan 1")
 
-    cmd("wpa_cli add_network 0")
+    cmd("wpa_cli add_network")
     
     # Frequently-repeated command
-    set_network = "wpa_cli -i wlan0 set_network 0 "
+    set_network = "wpa_cli set_network 0 "
     
     cmd(set_network + " ssid '\"" + ssid + "\"'")
     
@@ -51,11 +52,10 @@ def config(ssid, passphrase = None, enc_type = None, hidden = False):
     
     if not enc_type:
         cmd(set_network + " key_mgmt NONE")
-        cmd(set_network + " priority 100")
         
     if enc_type == 'WEP':
         # Don't use WEP boys and girls. We can't even encrypt the passphrase.
-	# FIXME Can't we?
+        # FIXME Can't we?
         cmd(set_network + " key_mgmt NONE")
         cmd(set_network + " wep_key0 " + psk)
         cmd(set_network + " wep_tx_keyidx 0")
@@ -75,8 +75,11 @@ def config(ssid, passphrase = None, enc_type = None, hidden = False):
     
     # TODO Also set the country code. Currently US.
     
-    cmd("wpa_cli enable_network 0")
+    # FIXME Do I need to also enable_network?
+    cmd("wpa_cli select_network 0")
     cmd("wpa_cli save_config")
+
+    # Do a .after backup as well
     cmd("cp " + conf_file + " " + conf_file + "." + timestamp + ".after")
 
 

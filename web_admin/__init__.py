@@ -1,3 +1,10 @@
+#!/usr/bin/env python3.5
+from sys import path
+path.append('/SmartBird')
+
+import cgi
+# FIXME Remove for prod
+import cgitb; cgitb.enable()
 import lib.debugging
 from lib.err import ErrCls
 from lib.config import config
@@ -8,14 +15,11 @@ err = ErrCls()
 debug = lib.debugging.printmsg
 
 def get_template():
-    '''Returns our template as a list'''
+    '''Returns our template as a string'''
     #try:
-    template = list()
     with open(config.conf['WEB_ADMIN_TEMPLATE_FILE']) as f:
-        for row in f.read():
-            template.append(row)
+        template = f.readlines()
     
-    template = '\n'.join(template)
     #except OSError:
     #    warning = ("Could not load the web admin template.",
     #                " ('web_admin/__init__.py', '_daemon')")
@@ -26,13 +30,11 @@ def get_template():
 
 def get_params(request):
     '''Given a request, returns the path and parameters'''
-    debug("request: " + repr(request))
+    debug("request: " + repr(request), level = 1)
     
-    path = urlparse(request).path
     params = parse_qs(urlparse(request).query)
     
-    debug("path: " + repr(path))
-    debug("params: " + repr(params))
+    debug("params: " + repr(params), level = 1)
     return (path, params)
 
 
@@ -54,23 +56,13 @@ def status():
     return True
 
 
-def serve():
-    '''Actual web content'''
-    from urls import get_web_page_content
-    
-    path, params = get_params(request)
-    
-    web_page_content = get_web_page_content(path, params)
-    
-    if web_page_content:
-        # Load web_page_content into our template
-        web_page_content = get_template() % (web_page_content)
-        
-        # FIXME Needed?
-        data = 'HTTP/1.0 200 OK\r\n'
-        data += 'Content-type: text/html\r\n'
-        data += 'Content-length: ' + str(len(web_page_content)) + '\r\n'
-        data += '\r\n'
-        data += web_page_content
-        
-        return data
+# Boilerplate for all web pages
+# FIXME Where do I get url? CGI methinks...
+params = get_params(url)
+
+# FIXME Needed?
+print('HTTP/1.0 200 OK\r\n')
+print('Content-type: text/html\r\n')
+# FIXME Needed?
+#print('Content-length: ' + str(len(web_page_content)) + '\r\n')
+print('\r\n')

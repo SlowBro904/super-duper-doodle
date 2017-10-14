@@ -20,15 +20,18 @@ assert conf_md5 == defaults_md5, check
 good(check)
 
 # FIXME Create a test for WEP in a separate file so I can switch the network
-lib.wifi.config(ssid = "Be:my:guest", passphrase = "Guest:my:be",
-    enc_type = "WPA", hidden = True)
+# FIXME Also a config for a hidden network
+def open('/root/wifi.json') as f:
+    ssid, passphrase = loads(f.read())
+
+lib.wifi.config(ssid = ssid, passphrase = passphrase, enc_type = "WPA"
 lib.wifi.connect()
 
 assert lib.wifi.isconnected() is True, "isconnected()"
 good("isconnected()")
 
 debug("lib.wifi.ssid(): " + repr(lib.wifi.ssid()), level = 1)
-assert lib.wifi.ssid() == "Be:my:guest", "WIFI_SSID"
+assert lib.wifi.ssid() == "ThisNetworkIsMonitored!2", "WIFI_SSID"
 good("WIFI_SSID")
 
 check = "IP"
@@ -52,3 +55,4 @@ conn_strength = int(lib.wifi.conn_strength())
 if conn_strength:
     assert conn_strength > 0, "conn_strength: '" + str(conn_strength) + "'"
     good("conn_strength: " + repr(conn_strength))
+
