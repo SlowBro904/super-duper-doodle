@@ -1,9 +1,11 @@
+#!/usr/bin/env python3.5
+import __init__ as web_admin
+
 import lib.wifi
-import web_admin
+import lib.debugging
 from lib.cloud import cloud
 from lib.config import config
-# TODO Rename SystemCls to be consistent
-from lib.system import System
+from lib.system import SystemCls
 
 device_name = config.conf['DEVICE_NAME']
 title = device_name
@@ -11,26 +13,33 @@ header = ""
 h1 = title
 body = ""
 
-serial = System().serial
-version = System().version
+system = SystemCls()
+serial = system.serial
+version = system.version
+debug = lib.debugging.printmsg
 
-if not lib.wifi.ssid:
+debug("serial: " + repr(serial), level = 1)
+debug("lib.wifi.ssid(): " + repr(lib.wifi.ssid()), level = 1)
+debug("lib.wifi.isconnected(): " + repr(lib.wifi.isconnected()), level = 1)
+
+if not lib.wifi.ssid():
+    # FIXME Not seen.
     body += '''Let's get started!
-    <script>window.location.href = '/wifi/choose_network';</script>'''
+    <script>window.location.href = '/cgi-bin/wifi/choose_network.py';</script>'''
 elif not lib.wifi.isconnected():
     body += '''I cannot connect to your home router.<br />
     <br />
     <ul>
-    <li>Is the <a href='/wifi/choose_network'>Wi-Fi configuration</a>
+    <li>Is the <a href='/cgi-bin/wifi/choose_network.py'>Wi-Fi configuration</a>
     correct?</li>
     <li>If you are still unable to connect, contact technical support.</li>
     <ul>'''
-elif not cloud.can_login():
+elif not cloud.isconnected():
     body += "I could not login to the " + device_name + ''' network.<br />
     <br />
     <ul>
     <li>Did your username or password recently change?
-    <a href='/service_account/setup'>Please update it</a>.</li>
+    <a href='/cgi-bin/service_account/setup.py'>Please update it</a>.</li>
     <li>Is your account still active? Please login to the ''' + device_name
     + ''' website.</li>
     <li>If you are still unable to connect, contact technical support.</li>
@@ -38,17 +47,17 @@ elif not cloud.can_login():
 else:
     body += '''Connnected to the ''' + device_name + ''' network.<br />
     <br />
-    <a href='/wifi/choose_network'>Configure Wi-Fi</a><br />
+    <a href='/cgi-bin/wifi/choose_network.py'>Configure Wi-Fi</a><br />
     <br />
-    <a href='/service_account/setup'>Update your ''' + device_name 
-    + ''' service username or password</a>'''
+    <a href='/cgi-bin/service_account/setup.py'>Update your ''' + device_name
+    body += ''' service username or password</a>'''
 
 body += '''<br />
 <br />
-<a href='/error_log'>Error log</a><br />
+<a href='/cgi-bin/error_log.py'>Error log</a><br />
 <br />
 '''
-body += device_name + " software version " + version + " | "
+body += device_name + " version " + version + " | "
 body += " Serial number " + serial
 
 print(web_admin.get_template() % (title, header, h1, body))

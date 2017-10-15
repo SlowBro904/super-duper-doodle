@@ -31,15 +31,15 @@ def defaults():
 
 
 
-def config(ssid, passphrase = None, enc_type = None, hidden = False):
+def config(ssid, password = None, enc_type = None, hidden = False):
     '''Sets up our Wi-Fi network in /etc/wpa_supplicant/wpa_supplicant.conf'''
     # FIXME Can't ping after setting all this. See what I missed.
     timestamp = datetime.now().strftime('%Y-%m-%d.%H-%M')
-
+    
     defaults()
-
+    
     cmd("wpa_cli ap_scan 1")
-
+    
     cmd("wpa_cli add_network")
     
     # Frequently-repeated command
@@ -53,17 +53,17 @@ def config(ssid, passphrase = None, enc_type = None, hidden = False):
     if not enc_type:
         cmd(set_network + " key_mgmt NONE")
         
-    if enc_type == 'WEP':
-        # Don't use WEP boys and girls. We can't even encrypt the passphrase.
+    if enc_type == 'wep':
+        # Don't use WEP boys and girls. We can't even encrypt the password.
         # FIXME Can't we?
         cmd(set_network + " key_mgmt NONE")
         cmd(set_network + " wep_key0 " + psk)
         cmd(set_network + " wep_tx_keyidx 0")
     
-    if enc_type == 'WPA':
-        psk = passphrase
-        # Try to encrypt the passphrase
-        raw = cmd("wpa_passphrase \"" + ssid + "\" \"" + passphrase + "\"")[0]
+    if enc_type in ['wpa', 'wpa2']:
+        psk = password
+        # Try to encrypt the password
+        raw = cmd("wpa_password \"" + ssid + "\" \"" + password + "\"")[0]
         for row in raw.split('\n'):
             match = re_search(r'^\s*psk=(.*)$', row)
             if match:
@@ -91,18 +91,20 @@ def connect():
 
 def ssid(iface = 'wlan0'):
     '''Returns the ssid'''
-    return cmd('sudo lib/wifi/get_SSID.sh ' + iface)[0]
+    stdout, stderr = cmd('sudo /SmartBird/lib/wifi/get_SSID.sh ' + iface)[0:2]
+    debug("wifi/__init__.py ssid() stderr: " + repr(stderr), level = 1)
+    return stdout
 
 
 def isconnected():
     '''See if we are connected to the wlan0 Wi-Fi network'''
     # The [2] from cmd() is the exit status
-    return cmd('sudo lib/wifi/get_wifi_connected.sh')[2] == 0
+    return cmd('sudo /SmartBird/lib/wifi/get_wifi_connected.sh')[2] == 0
 
 
 def ip(iface = 'wlan0'):
     '''Returns the IP of the interface'''
-    return cmd('sudo lib/wifi/get_IP.sh ' + iface)[0]
+    return cmd('sudo /SmartBird/lib/wifi/get_IP.sh ' + iface)[0]
 
 
 def AP_sec_type(ssid):
@@ -112,7 +114,7 @@ def AP_sec_type(ssid):
 
 def conn_strength():
     '''The strength of our wlan0 connection'''
-    return cmd('sudo lib/wifi/get_conn_strength.sh')[0]
+    return cmd('sudo /SmartBird/lib/wifi/get_conn_strength.sh')[0]
 
 
 def all_APs(iface = 'wlan0'):
@@ -140,11 +142,19 @@ def all_APs(iface = 'wlan0'):
 
 
 def all_SSIDs():
-    '''A set of all SSIDs sorted by signal strength'''
-    ssids = list()
+    '''Returns a list of all SSIDs , sorted by signal strength'''
+    temp_ssids1 = list()
     for ssid, values in all_APs().items():
         sig = values[0]
-        ssids.append([ssid, sig])
+        temp_ssids1.append([ssid, sig])
     
     # Sort by signal strength
-    return sorted(ssids, key = lambda x: x[1], reverse = True)
+    # TODO Can we just overwrite the ssid var instead of creating temp_ssidsX?
+    temp_ssids2 = sorted(temp_ssids1, key = lambda x: x[1], reverse = True)
+    
+    ssids = list()
+    for ssid_combo in temp_ssids2:
+        ssid = ssid_combo[0]
+        ssids.append(ssid)
+
+    return ssids

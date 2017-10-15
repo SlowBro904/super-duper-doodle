@@ -3,8 +3,8 @@
 from lib.leds import leds
 from lib.err import ErrCls
 from lib.cloud import cloud
+from time import time, sleep
 from lib.config import config
-from lib.time import time, sleep
 from lib.system import SystemCls
 # TODO ScheduleCls for consistency
 from lib.schedule import Schedule
@@ -14,8 +14,8 @@ from lib.update_data import get_data_updates
 leds.LED('good', default = True)
 
 errors = ErrCls()
-system = System()
-schedule = ScheduleCls(system.attached_devices)
+system = SystemCls()
+schedule = Schedule(system.attached_devices)
 
 sched_buff = config.conf['SCHEDULE_BUFFER']
 last_run = time()

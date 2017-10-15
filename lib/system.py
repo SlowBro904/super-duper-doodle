@@ -1,6 +1,14 @@
+from sys import argv
+import lib.debugging
 from json import loads
 from lib.cmd import cmd
+from os import chdir, path
 from lib.config import config
+
+debug = lib.debugging.printmsg
+
+# Change to the directory this script is running in
+chdir(path.dirname(path.abspath(argv[0])))
 
 class SystemCls(object):
     @property
@@ -29,7 +37,10 @@ class SystemCls(object):
         try:
             return self._serial
         except AttributeError:
-            self._serial = cmd('lib/get_serial.sh')[0]
+            debug("Current directory: " + repr(cmd('pwd')[0]), level = 1)
+            stdout, stderr = cmd('/SmartBird/lib/get_serial.sh')[0:2]
+            self._serial = stdout
+            debug("system.py serial() stderr: " + repr(stderr), level = 1)
         return self._serial
     
     

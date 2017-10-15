@@ -19,23 +19,26 @@ sleep 3
 apt-get update
 # FIXME Inside update_sys.py get_sys_updates() check whether we can apt-get dist-upgrade
 apt-get --assume-yes dist-upgrade
-apt-get autoremove --purge
 
 # FIXME Setup the keyboard automatically, SSH at boot -- disable for prod -- and networking
-apt-get --assume-yes install lighttpd dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip
+apt-get --assume-yes install lighttpd dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip python3-pigpio
 #apt-get --assume-yes install rng-tools ntpdate python-arrow python-picamera busybox-syslogd
 #dpkg --purge rsyslog
+apt-get autoremove --purge
 
 pip3 install paho-mqtt
 
 lighttpd-enable-mod cgi
 service lighttpd force-reload
+
+# FIXME Add specific commands not carte blanche root
 gpasswd -a www-data sudo
+gpasswd -a www-data gpio
 
 # Install our custom files
+cp -a boot /
 cp -a etc /
 cp -a lib /
-cp -a boot /
 cp -a var /
 
 #update-rc.d hostapd disable
@@ -86,6 +89,8 @@ usermod -p $(echo smartbird | openssl passwd -1 -stdin) root
 #ln -s /tmp/random-seed /var/lib/systemd/random-seed
 #insserv -r bootlogs
 #insserv -r console-setup
+
+chown www-data:www-data -R /SmartBird
 
 echo "The system will now reboot..."
 sleep 3

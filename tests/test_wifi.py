@@ -3,6 +3,7 @@ import test_suite
 
 import lib.wifi
 import lib.debugging
+from json import loads
 from lib.cmd import cmd
 from lib.config import config
 
@@ -21,10 +22,10 @@ good(check)
 
 # FIXME Create a test for WEP in a separate file so I can switch the network
 # FIXME Also a config for a hidden network
-def open('/root/wifi.json') as f:
-    ssid, passphrase = loads(f.read())
+with open('/root/wifi.json') as f:
+    ssid, password = loads(f.read())
 
-lib.wifi.config(ssid = ssid, passphrase = passphrase, enc_type = "WPA"
+lib.wifi.config(ssid = ssid, password = password, enc_type = "WPA")
 lib.wifi.connect()
 
 assert lib.wifi.isconnected() is True, "isconnected()"

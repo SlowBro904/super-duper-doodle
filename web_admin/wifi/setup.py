@@ -1,31 +1,36 @@
-import lib.wifi
+#!/usr/bin/env python3.5
+from sys import path
+path.append('../..')
 import web_admin
+
+import lib.wifi
 from lib.config import config
 
 title = "Connect to a new Wi-Fi network"
 
 ssid = None
 if 'ssid' in web_admin.params and web_admin.params['ssid']:
-    ssid = web_admin.params['ssid']
+    ssid = web_admin.params['ssid'].value
 
 if ssid == '*****Hidden_network*****':
     ssid = None
     hidden = True
 
-header = '''<script>
-    function show_passwords() {
-        document.getElementById('password1').style.display = "table-row";
-        document.getElementById('password2').style.display = "table-row";
-    }
-    function hide_passwords() {
-        document.getElementById('password1').style.display = "none";
-        document.getElementById('password2').style.display = "none";
-    }
-    </script>'''
+header = '''
+<script>
+function show_passwords() {
+    document.getElementById('password1').style.display = "table-row";
+    document.getElementById('password2').style.display = "table-row";
+}
+function hide_passwords() {
+    document.getElementById('password1').style.display = "none";
+    document.getElementById('password2').style.display = "none";
+}
+</script>'''
 
 h1 = title
 
-body = '''<form action='/wifi/save' method='get'>
+body = '''<form action='/cgi-bin/wifi/save.py' method='get'>
 <table>'''
 
 sec_type = 'None'
@@ -34,16 +39,16 @@ if ssid:
     sec_type = lib.wifi.AP_sec_type(ssid)
     
     body += '''<tr><td>Network name (ssid): </td><td><div align='right'>'''
-    body += ssid + "</div></td></tr>"
-    body += "<input type='hidden' name='ssid' value='" + ssid + "' />"
-    body += "<input type='hidden' name='sec_type' value='" + sec_type
-    body += "' />"
+    body += ssid + "</div></td></tr>\n"
+    body += "<input type='hidden' name='ssid' value='" + ssid + "' />\n"
+    body += "<input type='hidden' name='sec_type' value='" + str(sec_type)
+    body += "' />\n"
 else:
-    body += "<tr><td>Network name (ssid):</td><td><div align='right'>"
-    body += "<input type='text' name='ssid' /></div></td></tr>"
+    body += "<tr><td>Network name (ssid):</td><td><div align='right'>\n"
+    body += "<input type='text' name='ssid' /></div></td></tr>\n"
 
     if hidden:
-        body += "<input type='hidden' name='hidden' value='True' />"
+        body += "<input type='hidden' name='hidden' value='True' />\n"
     else:
         body += '''<tr><td>&nbsp;</td>
         <td><label><input type='checkbox' name='hidden' value='True'>Hidden
@@ -53,11 +58,11 @@ else:
     body += '''<tr><td>Security type: </td><td>
     <input type='radio' name='sec_type' value='None' 
         onclick='hide_passwords();'>None</input>
-    <input type='radio' name='sec_type' value='WEP'  
+    <input type='radio' name='sec_type' value='wep'  
         onclick='show_passwords();'>WEP</input>
-    <input type='radio' name='sec_type' value='WPA'  
+    <input type='radio' name='sec_type' value='wpa'  
         onclick='show_passwords();'>WPA</input>
-    <input type='radio' name='sec_type' value='WPA2' 
+    <input type='radio' name='sec_type' value='wpa2' 
         onclick='show_passwords();'>WPA2</input>
     </td></tr>'''
 

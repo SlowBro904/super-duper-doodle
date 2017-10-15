@@ -18,7 +18,7 @@ assert system.version == version, check
 good(check)
 
 check = "system.attached_devices"
-assert len(system.attached_devices) >= 2, check
+assert len(system.attached_devices) >= 1, check
 good(check)
 
 check = "door in devices"

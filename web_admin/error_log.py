@@ -1,7 +1,9 @@
-import web_admin
+#!/usr/bin/env python3.5
+import __init__ as web_admin
+
 from lib.err import ErrCls
 
-errors = Err()
+errors = ErrCls()
 
 title = "Error log"
 
@@ -22,14 +24,15 @@ tr:nth-child(even){background-color: #f2f2f2}
 
 h1 = title
 
-body = "<table>"
+body = "<table><tr><th>Entry</th></tr>"
 
 # TODO Paginate
+# FIXME Test. Not likely to work as errors.log has multiple layers.
 for entry in errors.log:
-    body += "<tr><td>" + entry + "</td></tr>"
+    body += "<tr><td>" + repr(entry) + "</td></tr>"
 
 body += '''</table><br />
 <br />'''
-body += "<a href='/'>Home</a>"
+body += "<a href='/cgi-bin/home.py'>Home</a>"
 
 print(web_admin.get_template() % (title, header, h1, body))
