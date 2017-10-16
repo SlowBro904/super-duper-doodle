@@ -15,6 +15,14 @@ errors = ErrCls()
 class Schedule(object):
     def __init__(self, devices):
         '''Sets up scheduled events for our devices'''
+        # Definitions in this class:
+        # * Schedule: The weekday schedule of events. For example: (0,7,15) is
+        #   on Monday, perform some operation at 7:15am.
+        # * Event: The actual event on the calendar. For example, 1508155560 is
+        #   Monday, October 16, 2017 8:06:00 AM GMT-04:00 DST.
+        # Data is communicated from the server in schedule format, and gets
+        # converted to usable events in this class.
+        #
         # The data structures in this class look like the following:
         # device.json = {'weekday,hour,min': ('cmd', 'args'),
         #                'weekday,hour,min': ('cmd', 'args')}
@@ -55,7 +63,7 @@ class Schedule(object):
                     self.schedules[device] = dict()
                 
                 self.schedules[device][schedule] = command
-
+            
             try:
                 debug("schedule.py __init__() self.schedules[device]: " +
                         repr(self.schedules[device]), level = 0)
@@ -71,22 +79,19 @@ class Schedule(object):
     
     def get_todays_events(self, device):
         '''Gives us the events scheduled for today in the future.
-
+        
         Ignores events from earlier today. Returns a list of tuples sorted by
         event time. Each tuple contains the event time (in seconds since
         epoch), command, and arguments.
         '''
         now = datetime.now()
-        now_hour, now_min, now_secs = now.hour, now.minute, now.second
-        # Number of seconds since epoch as of 00:00 this morning
-        today_secs = int(time()) - (now_hour*60*60) - (now_min*60) - now_secs
-        
         today = now.weekday()
+        now_secs = now.second
         
         todays_events = list()
         
         for event_time in self.schedules[device]:
-            event_weekday, event_hour, event_min = event_time
+            event_weekday = event_time[0]
             
             if event_weekday is not today:
                 debug("schedule.py get_todays_events() event_time (" +
@@ -95,7 +100,7 @@ class Schedule(object):
                     ") is not today (" + repr(today) + ")", level = 0)
                 continue
             
-            event_secs = today_secs + (event_hour*60*60) + (event_min*60)
+            event_secs = self.tuple_to_secs(event_time)
             
             if event_secs < now_secs:
                 debug("schedule.py get_todays_events()event_secs (" + 
@@ -139,7 +144,13 @@ class Schedule(object):
     
     
     def get_due(self, device):
-        '''Returns a list of all events that are due now for a given device'''
+        '''Returns a list of all event times that are due now for a device'''
+        # TODO This may become a problem when two events on two
+        # different devices are scheduled at the same time. Doesn't
+        # prevent go-live because I currently only have one device.
+        # But must be fixed before adding the first item. Change
+        # this TODO into a FIXME before adding the second device.
+        
         # Get all schedules for all devices
         all_event_times = [x[0] for x in self.todays_events[device]]
         debug("schedule.py get_due() all_event_times: " + 
@@ -170,6 +181,22 @@ class Schedule(object):
         return device_due
     
     
+    def tuple_to_secs(self, event_time):
+        '''Takes an event time which is int(weekday), int(hour), int(minute)
+        and converts it to an epoch time in seconds.
+        '''
+        now = datetime.now()
+        
+        now_hour, now_min, now_secs = now.hour, now.minute, now.second
+        
+        # Number of seconds since epoch as of 00:00 this morning
+        today_secs = int(time()) - (now_hour*60*60) - (now_min*60) - now_secs
+        
+        event_weekday, event_hour, event_min = event_time
+        
+        return today_secs + (event_hour*60*60) + (event_min*60)
+    
+    
     def run(self):
         '''Run any events that are due now'''
         # TODO I might want a per-device retry but quite difficult to implement
@@ -193,6 +220,18 @@ class Schedule(object):
                 debug("schedule.py run() starting loop on device " + 
                     repr(device), level = 0)
                 
+                # Logic to know when to stop executing the for loop device in 
+                # self.todays_events. If this is empty we are done with events
+                # that are due right now.
+                debug("len(self.todays_events[device]): " + 
+                    repr(len(self.todays_events[device])), level = 0)
+                if len(self.todays_events[device]) == 0:
+                    debug("len(self.todays_events[device]) == 0 so we are " +
+                        "done executing on due items for this device.", 
+                        level = 0)
+                    items_scheduled = False
+                    break
+                
                 due = self.get_due(device)
                 debug("schedule.py run() due: " + repr(due))
                 
@@ -205,34 +244,40 @@ class Schedule(object):
                 items_scheduled = True
                 
                 # Get our command and arguments
-                for event_time in due:
-                    debug("schedule.py run() event_time: " + repr(event_time), 
+                for event_secs in due:
+                    debug("schedule.py run() event_secs: " + repr(event_secs), 
                         level = 0)
                     debug("schedule.py run() self.schedules[device]: " + 
                         repr(self.schedules[device]), level = 0)
                     
-                    # FIXME KeyError because event_time is in seconds but
-                    # self.schedules[device] is (d, h, m). Maybe create 
-                    # secs_to_tuple()
-                    event = self.schedules[device][event_time]
+                    # Convert each key in the self.schedules dict into seconds
+                    # since epoch
+                    schedules = {self.tuple_to_secs(k): v for k, v in self.schedules[device].items()}
+                    debug("schedule.py run() schedules: " + repr(schedules), 
+                        level = 0)
+                    
+                    event = schedules[event_secs]
                     debug("schedule.py run() event: " + repr(event), level = 0)
                     
-                    cmd, args = event[1:]
+                    cmd, args = event
                     debug("schedule.py run() cmd: " + repr(cmd), level = 0)
                     debug("schedule.py run() args: " + repr(args), level = 0)
                     
                     device_routine = DeviceRoutine(device)
                     
+                    # FIXME This runs more than once
                     status = device_routine.run(cmd, args)
                     debug("schedule.py run() status: " + repr(status),
                         level = 1)
                     
                     # FIXME Do retries in cloud or mqtt if I don't already
+                    # FIXME Listen for this on the cloud
+                    # FIXME Review my QoS levels. Is 1 a problem?
                     cloud.send(device + '_status', status)
                     
                     # Remove what we just executed
                     # FIXME And save it to disk
-                    self.todays_events[device].remove(event)
+                    self.todays_events[device].remove((event_secs, cmd, args))
             
             # Logic to know when to stop executing the outer while loop. If
             # this never gets set in this for loop we know we have no items

@@ -67,14 +67,13 @@ except:
     print(web_admin.get_template() % (title, header, h1, body))
     exit()
 
-# FIXME Fails here I think.
-lib.wifi.connect()
-
 if config.conf['SERVICE_ACCOUNT_EMAIL']:
     body += "<meta http-equiv='refresh' content='10;url=/' />\n"
 else:
     # Service account not setup yet
     body += '''<meta http-equiv='refresh' 
     content='0;url=/cgi-bin/service_account/setup.py' />'''
+
+lib.wifi.connect()
 
 print(web_admin.get_template() % (title, header, h1, body))

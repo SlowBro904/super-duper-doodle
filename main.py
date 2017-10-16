@@ -21,24 +21,29 @@ debug = lib.debugging.printmsg
 
 def updates():
     try:
-        debug("main.py get_sys_updates()")
-        get_sys_updates()
+        # FIXME Uncomment
+        #debug("main.py get_sys_updates()")
+        #get_sys_updates()
         # FIXME Make sure we reboot after installing updates, I think we do
         # FIXME Receive this on the server
-        debug("main.py cloud.send version")
-        cloud.send('version', system.version)
+        # FIXME Uncomment
+        #debug("main.py cloud.send version")
+        #cloud.send('version', system.version)
         # FIXME Also send the attached device status
         # FIXME Receive this on the server
-        debug("main.py cloud.send attached_devices")
-        cloud.send('attached_devices', system.attached_devices)
+        # FIXME Uncomment
+        #debug("main.py cloud.send attached_devices")
+        #cloud.send('attached_devices', system.attached_devices)
         # FIXME Receive this on the server
-        debug("main.py cloud.send lib.ntp.status()")
-        cloud.send('lib.ntp_status', lib.ntp.status())
+        # FIXME Uncomment
+        #debug("main.py cloud.send lib.ntp.status()")
+        #cloud.send('lib.ntp_status', lib.ntp.status())
         debug("main.py get_data_updates()")
         get_data_updates()
-        debug("main.py cloud.send errors.log")
-        if cloud.send('errors.log', errors.log) == 'ack':
-            errors.log = list()
+        # FIXME Uncomment
+        #debug("main.py cloud.send errors.log")
+        #if cloud.send('errors.log', errors.log) == 'ack':
+        #    errors.log = list()
     except RuntimeError:
         # Ignore if not connected
         debug("main.py not connected")
