@@ -67,6 +67,7 @@ except:
     print(web_admin.get_template() % (title, header, h1, body))
     exit()
 
+# FIXME Fails here I think.
 lib.wifi.connect()
 
 if config.conf['SERVICE_ACCOUNT_EMAIL']:

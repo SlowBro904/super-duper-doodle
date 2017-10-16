@@ -15,7 +15,8 @@ now_hour, now_min, now_secs = now.hour, now.minute, now.second
 # Number of seconds since epoch as of 00:00 this morning
 today_secs = int(time()) - (now_hour*60*60) - (now_min*60) - now_secs
 
-today = now.day
+# FIXME This didn't fail on now.day, which returned day of the month
+today = now.weekday()
 
 # Turn our schedule into a comma-delimited string
 temp_sched1 = ','.join([str(today), str(23), str(56)])

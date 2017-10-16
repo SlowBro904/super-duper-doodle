@@ -41,6 +41,15 @@ cp -a etc /
 cp -a lib /
 cp -a var /
 
+# FIXME Time zone. tzselect is the command.
+# You can make this change permanent for yourself by appending the line
+# TZ='America/New_York'; export TZ
+# to the file '.profile' in your home directory; then log out and log in again.
+# Here is that TZ value again, this time on standard output so that you
+# can use the /usr/bin/tzselect command in shell scripts:
+# America/New_York
+
+
 #update-rc.d hostapd disable
 #systemctl daemon-reload
 #systemctl enable hostapd-systemd

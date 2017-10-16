@@ -1,13 +1,12 @@
 #!/usr/bin/python3.4
-# From http://www.steves-internet-guide.com/into-mqtt-python-client/
 import os
 from glob import glob
 from time import sleep
 from hashlib import sha512
 from itertools import chain
 from re import sub as re_sub
+from datetime import datetime
 import paho.mqtt.client as mqtt
-#from crypto import AES, getrandbits
 from multiprocessing import Process
 from json import loads, dumps, load, dump
 
@@ -16,10 +15,22 @@ debug_enabled = True
 testing = True
 default_level = 0
 client_code_base = '/clients'
+
+now = datetime.now()
+today = str(now.weekday())
+hour = str(now.hour)
+# FIXME Unless > 59
+minute = str(now.minute + 2)
+
+# FIXME I will update the local data file but where do I
+# remove completed items, do I do that?
+# FIXME Make dynamic
 device_data = {'SB': 
                 {'4490b3be':
                     {'0.0.0': 
-                        {'testing1.json': ['testing1', '123']}
+                        {'door.json':
+                            {today + ',' + hour + ',' + minute: ('run', 'dn')}
+                        }
                     }
                 }
               }
@@ -27,7 +38,7 @@ device_data = {'SB':
 device_data_status = {'SB':
                         {'4490b3be':
                             {'0.0.0':
-                                {'testing1.json': False}
+                                {'door.json': False}
                             }
                         }
                      }
@@ -68,7 +79,6 @@ def on_message(client, userdata, in_msg):
     code_base = client_code_base + '/' + dev_type
     
     if topic == 'ping':
-        # Don't encrypt ping/ack
         out_msg = 'ack'
     
     # FIXME Need a list of directories or maybe a protection file
@@ -117,8 +127,7 @@ def on_message(client, userdata, in_msg):
             # FIXME Finish
             out_msg = dict()
             if testing:
-                device_data[dev_type][serial][ver]['testing2.json'] = ['testing2', '456']
-                device_data_status[dev_type][serial][ver]['testing2.json'] = False
+                device_data_status[dev_type][serial][ver]['door.json'] = False
             for data_file in device_data[dev_type][serial][ver]:
                 if not device_data_status[dev_type][serial][ver][data_file]:
                     out_msg[data_file] = device_data[dev_type][serial][ver][data_file]
@@ -127,7 +136,7 @@ def on_message(client, userdata, in_msg):
     elif topic == 'got_data_update':
         data_file = msg
         # TODO This only records the data file updated, not actual
-        # data updated. But maybe we want that, because it doubles
+        # data updated. But maybe we want that otherwise it doubles
         # the data sent. We basically wouldn't get this unless we
         # validate the data being sent, so I think it's sufficient.
         # FIXME Catch AttributeError or whatever it would be
@@ -142,8 +151,7 @@ def on_message(client, userdata, in_msg):
             device_log[dev_type][serial] = list()
         device_log[dev_type][serial].append(msg)
         # FIXME Here, do something with the errors received
-        debug("error_log: '" + str(device_log[dev_type][serial])
-                + "'")
+        debug("error_log: " + repr(device_log[dev_type][serial]))
         
         out_msg = 'ack'
     
@@ -277,12 +285,6 @@ def check_file_list(mydir):
 
 def on_log(client, userdata, level, buf):
     debug("log: " + str(buf), level = 1)
-
-
-def _encrypt(msg):
-    # iv = Initialization Vector
-    iv = getrandbits(128)
-    return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
 
 
 if __name__ == '__main__':

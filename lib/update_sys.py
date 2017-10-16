@@ -139,7 +139,8 @@ def get_sys_updates():
         try:
             with open(file_list) as f:
                 file_list_contents = loads(f.read())
-        except OSError:
+            len(file_list_contents)
+        except (OSError, TypeError):
             # FIXME Also [Errno 2] ENOENT
             fetch_latest_list = True
     
@@ -161,7 +162,7 @@ def get_sys_updates():
         # MicroPython lacks the ability to create the entire path chain with
         # one command. Build the chain creating one directory at a time
         tempdir = '/SmartBird'
-        for subdir in new_dir.split('/'):    
+        for subdir in new_dir.split('/'):
             tempdir += '/' + subdir
             try:
                 debug("Creating tempdir '" + str(tempdir) + "'", level = 1)

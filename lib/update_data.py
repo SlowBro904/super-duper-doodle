@@ -50,18 +50,17 @@ def get_data_updates(get_all = False):
         debug("update_data.py get_data_updates() update: '" +
                 str(update) + "'", level = 1)
         
-        parameter, value = update
-        
-        myfile = '/SmartBird/data/' + data_file
-        try:
-            # Read the original file
-            with open(myfile) as f:
-                data[data_file] = loads(f.read())
-        except OSError:
-            # File doesn't exist yet. We'll create it in memory first.
-            data[data_file] = dict()
-        
-        data[data_file][parameter] = value
+        for parameter, value in update.items():
+            myfile = '/SmartBird/data/' + data_file
+            try:
+                # Read the original file
+                with open(myfile) as f:
+                    data[data_file] = loads(f.read())
+            except OSError:
+                # File doesn't exist yet. We'll create it in memory first.
+                data[data_file] = dict()
+            
+            data[data_file][parameter] = value
     
     
     debug("update_data.py get_data_updates() data: " + repr(data), level = 1)

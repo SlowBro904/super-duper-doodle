@@ -52,7 +52,7 @@ class SystemCls(object):
         Ignores any non-certified hardware.
         '''        
         try:
-            return self._attached_devices
+            self._attached_devices
         except AttributeError:
             self._attached_devices = set()
             
@@ -61,4 +61,4 @@ class SystemCls(object):
             
             # TODO Implement I2C devices here
             
-        return self._attached_devices
+        return list(self._attached_devices)
