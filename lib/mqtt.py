@@ -43,12 +43,20 @@ class MQTTCls(object):
         debug("mqtt.py __init__() end", level = 1)
     
     
-    def connect(self):
+    def connect(self, retries = None):
         '''Connect to the MQTT broker'''
-        if not self.client.connect(self.server, self.port, self.timeout):
-            # FIXME Test this
-            # FIXME Why do I have this?
-            self.resub = True
+        if not retries:
+            retries = self.retries
+        
+        for i in range(retries):
+            if not self.client.connect(self.server, self.port, self.timeout):
+                # FIXME Test this
+                # FIXME Why do I have this?
+                self.resub = True
+            else:
+                debug("mqtt.py connect() failed, retrying...", level = 1)
+                break
+        
         self.client.loop_start()
     
     

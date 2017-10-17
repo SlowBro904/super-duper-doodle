@@ -52,7 +52,6 @@ def updates():
 updates()
 
 debug("main.py Schedule(system.attached_devices)")
-schedule = Schedule(system.attached_devices)
 
 # Add 1 for the sleep at the end
 # FIXME Set this value, and all values, to sensible defaults and live config
@@ -77,6 +76,7 @@ while True:
         updates()
         
         debug("main.py schedule.run()")
+        schedule = Schedule(system.attached_devices)
         schedule.run()
     # FIXME Do I have a race condition where I have an event inside this sleep?
     sleep(1)

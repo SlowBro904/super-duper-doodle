@@ -5,6 +5,7 @@ import web_admin
 
 import lib.wifi
 from sys import exit
+from time import sleep
 from lib.config import config
 from lib.reboot import reboot
 
@@ -74,6 +75,7 @@ else:
     body += '''<meta http-equiv='refresh' 
     content='0;url=/cgi-bin/service_account/setup.py' />'''
 
+sleep(30)
 lib.wifi.connect()
 
 print(web_admin.get_template() % (title, header, h1, body))

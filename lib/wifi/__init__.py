@@ -33,37 +33,55 @@ def defaults():
 
 def config(ssid, password = None, enc_type = None, hidden = False):
     '''Sets up our Wi-Fi network in /etc/wpa_supplicant/wpa_supplicant.conf'''
-    # FIXME Can't ping after setting all this. See what I missed.
     timestamp = datetime.now().strftime('%Y-%m-%d.%H-%M')
     
     defaults()
     
-    cmd("wpa_cli ap_scan 1")
+    stderr = cmd("sudo wpa_cli ap_scan 1")[1]
+    debug("wifi config() wpa_cli ap_scan 1 stderr: " + repr(stderr), level = 1)
     
-    cmd("wpa_cli add_network")
+    stderr = cmd("sudo wpa_cli add_network")[1]
+    debug("wifi config() wpa_cli add_network stderr: " + repr(stderr), 
+        level = 1)
     
     # Frequently-repeated command
-    set_network = "wpa_cli set_network 0 "
+    set_network = "sudo wpa_cli -i wlan0 set_network 0 "
     
-    cmd(set_network + " ssid '\"" + ssid + "\"'")
+    stderr = cmd(set_network + " ssid '\"" + ssid + "\"'")
     
     if hidden:
-        cmd(set_network + " scan_ssid 1")
+        stderr = cmd(set_network + " scan_ssid 1")[1]
+        debug("wifi config() wpa_cli scan_ssid 1 stderr: " + repr(stderr), 
+            level = 1)
     
     if not enc_type:
-        cmd(set_network + " key_mgmt NONE")
-        
+        stderr = cmd(set_network + " key_mgmt NONE")[1]
+        debug("wifi config() wpa_cli key_mgmt NONE 1 stderr: " + repr(stderr), 
+            level = 1)
+    
     if enc_type == 'wep':
         # Don't use WEP boys and girls. We can't even encrypt the password.
         # FIXME Can't we?
-        cmd(set_network + " key_mgmt NONE")
-        cmd(set_network + " wep_key0 " + psk)
-        cmd(set_network + " wep_tx_keyidx 0")
+        stderr = cmd(set_network + " key_mgmt NONE")[1]
+        debug("wifi config() wpa_cli key_mgmt NONE stderr: " + repr(stderr), 
+            level = 1)
+        
+        stderr = cmd(set_network + " wep_key0 " + psk)[1]
+        debug("wifi config() wpa_cli wep_key0 stderr: " + repr(stderr), 
+            level = 1)
+        
+        stderr = cmd(set_network + " wep_tx_keyidx 0")[1]
+        debug("wifi config() wpa_cli wep_tx_keyidx stderr: " + repr(stderr), 
+            level = 1)
     
     if enc_type in ['wpa', 'wpa2']:
         psk = password
         # Try to encrypt the password
-        raw = cmd("wpa_password \"" + ssid + "\" \"" + password + "\"")[0]
+        raw, stderr = cmd("sudo wpa_passphrase \"" + ssid + "\" \"" + 
+            password + "\"")[0:2]
+        debug("wifi config() wpa_cli wpa_passphrase stderr: " + repr(stderr), 
+            level = 1)
+        
         for row in raw.split('\n'):
             match = re_search(r'^\s*psk=(.*)$', row)
             if match:
@@ -71,16 +89,27 @@ def config(ssid, password = None, enc_type = None, hidden = False):
                 break
         
         # TODO What if it fails to find any?
-        cmd(set_network + " psk " + psk)
+        stderr = cmd(set_network + " psk " + psk)[1]
+        debug("wifi config() wpa_cli psk stderr: " + repr(stderr), level = 1)
     
     # TODO Also set the country code. Currently US.
     
-    # FIXME Do I need to also enable_network?
-    cmd("wpa_cli select_network 0")
-    cmd("wpa_cli save_config")
+    stderr = cmd("sudo wpa_cli enable_network 0")[1]
+    debug("wifi config() wpa_cli enable_network stderr: " + repr(stderr), 
+        level = 1)
+    
+    stderr = cmd("sudo wpa_cli select_network 0")[1]
+    debug("wifi config() wpa_cli select_network stderr: " + repr(stderr), 
+        level = 1)
+    
+    stderr = cmd("sudo wpa_cli save_config")[1]
+    debug("wifi config() wpa_cli save_config stderr: " + repr(stderr), 
+        level = 1)
 
     # Do a .after backup as well
-    cmd("cp " + conf_file + " " + conf_file + "." + timestamp + ".after")
+    stderr = cmd("sudo cp " + conf_file + " " + conf_file + "." + timestamp + 
+        ".after")[1]
+    debug("wifi config() Backup config stderr: " + repr(stderr), level = 1)
 
 
 def connect():

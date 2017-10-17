@@ -4,8 +4,10 @@ from gpiozero import Motor
 from lib.config import config
 import lib.door_reed_switches
 from time import time as current_time
+from sys import setrecursionlimit, getrecursionlimit
 
 debug = lib.debugging.printmsg
+default_recursion_limit = getrecursionlimit()
 
 up_pin = config.conf['MOTOR_UP_PIN']
 dn_pin = config.conf['MOTOR_DN_PIN']
@@ -22,7 +24,7 @@ def operate(direction):
     motor_obj.run(direction)
 
 
-class MotorCls(object):    
+class MotorCls(object):
     timeout = config.conf['MOTOR_TIMEOUT']
     
     
@@ -66,17 +68,22 @@ class MotorCls(object):
         start_time = current_time()
         
         while True:
+            if current_time() >= (start_time + timeout):
+                debug("Motor timed out", level = 1)
+                return False
+            
             # If the status shows we are completely in the direction requested
             if lib.door_reed_switches.status() == direction:
-                debug("door_reed_switches.status() == direction. Stopping.")
-                debug("motor.value: '" + str(motor.value) + "'")
+                debug("door_reed_switches.status() == direction. Stopping.",
+                    level = 1)
+                debug("motor.value: '" + str(motor.value) + "'", level = 1)
                 self.stop()
                 break
             
             # Constantly monitor the current and if it is out of range stop,
             # reverse for three seconds, then try again
             if not low_current < self.current < high_current:
-                debug("We are outside of current range, reversing.")
+                debug("We are outside of current range, reversing.", level = 1)
                 self.stop()
                 
                 if direction == 'up':
@@ -84,16 +91,19 @@ class MotorCls(object):
                 else:
                     reverse = 'up'
                 
-                timer.reset()
-                # FIXME What if we're jammed in both directions? Prevent
-                # infinite recursion
-                self.run(direction = reverse, timeout = 3)
+                try:
+                    # Don't keep reversing over and over
+                    setrecursionlimit(2)
+                    self.run(direction = reverse, timeout = 3)
+                except RuntimeError:
+                    # FIXME Error here
+                    debug("Door stuck", level = 1)
+                    # FIXME Test the finally here. Will it execute?
+                    return False
+                finally:
+                    setrecursionlimit(default_recursion_limit)
             
             sleep(check_interval)
-            
-            if current_time() >= (start_time + timeout):
-                debug("Motor timed out")
-                return False
     
     
     def stop(self):

@@ -20,6 +20,7 @@ class Schedule(object):
         #   on Monday, perform some operation at 7:15am.
         # * Event: The actual event on the calendar. For example, 1508155560 is
         #   Monday, October 16, 2017 8:06:00 AM GMT-04:00 DST.
+        #
         # Data is communicated from the server in schedule format, and gets
         # converted to usable events in this class.
         #
@@ -39,6 +40,7 @@ class Schedule(object):
         self.status = dict()
         self.schedules = dict()
         self._next_event_time = None
+        self.todays_events_file = '/SmartBird/data/todays_events.json'
         
         for device in devices:
             try:
@@ -86,6 +88,15 @@ class Schedule(object):
         '''
         now = datetime.now()
         today = now.weekday()
+        
+        try:
+            with open(self.todays_events_file) as f:
+                todays_events = loads(f.read())
+            len(todays_events)
+        except OSError, TypeError:
+            # Don't have these on disk or can't read the file. Create it new.
+            pass
+            
         now_secs = now.second
         
         todays_events = list()
@@ -101,14 +112,6 @@ class Schedule(object):
                 continue
             
             event_secs = self.tuple_to_secs(event_time)
-            
-            if event_secs < now_secs:
-                debug("schedule.py get_todays_events()event_secs (" + 
-                        str(event_secs) + ") < now_secs (" + str(now_secs) + 
-                        ") so skipping events in the past", level = 0)
-                # Skip events in the past
-                # FIXME Do I want to?
-                continue
             
             cmd, args = self.schedules[device][event_time]
             
@@ -203,7 +206,7 @@ class Schedule(object):
         # so let's wait 'til we need it
         device_retries = config.conf['DEVICE_RETRIES']
         
-        # FIXME Add some kind of expected time buffer on the server so we're
+        # TODO Add some kind of expected time buffer on the server so we're
         # not continuously running events and killing our battery. Want a long
         # buffer between events, how about SCHEDULE_BUFFER x 5?
         
@@ -216,6 +219,7 @@ class Schedule(object):
             debug("schedule.py run() self.todays_events: " + 
                 repr(self.todays_events), level = 0)
             
+            # TODO Run devices in parallel
             for device in self.todays_events:
                 debug("schedule.py run() starting loop on device " + 
                     repr(device), level = 0)
@@ -225,6 +229,7 @@ class Schedule(object):
                 # that are due right now.
                 debug("len(self.todays_events[device]): " + 
                     repr(len(self.todays_events[device])), level = 0)
+                
                 if len(self.todays_events[device]) == 0:
                     debug("len(self.todays_events[device]) == 0 so we are " +
                         "done executing on due items for this device.", 
@@ -236,8 +241,8 @@ class Schedule(object):
                 debug("schedule.py run() due: " + repr(due))
                 
                 if not due:
-                    debug("schedule.py run() No schedules, go to next device", 
-                        level = 0)
+                    debug("schedule.py run() No schedules due for " + 
+                        str(device) + ", going to the next device", level = 0)
                     continue
                 
                 # At least one item was scheduled
@@ -270,14 +275,16 @@ class Schedule(object):
                     debug("schedule.py run() status: " + repr(status),
                         level = 1)
                     
-                    # FIXME Do retries in cloud or mqtt if I don't already
                     # FIXME Listen for this on the cloud
                     # FIXME Review my QoS levels. Is 1 a problem?
                     cloud.send(device + '_status', status)
                     
-                    # Remove what we just executed
-                    # FIXME And save it to disk
-                    self.todays_events[device].remove((event_secs, cmd, args))
+                # Remove what we just executed
+                self.todays_events[device].remove((event_secs, cmd, args))
+            
+            with open(self.todays_events_file, 'w') as f:
+                f.write(dumps(self.todays_events))
+            debug("Wrote to self.todays_events_file.", level = 1)
             
             # Logic to know when to stop executing the outer while loop. If
             # this never gets set in this for loop we know we have no items
