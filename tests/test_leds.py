@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env pypy
 import test_suite
 from time import sleep
 import lib.leds as leds

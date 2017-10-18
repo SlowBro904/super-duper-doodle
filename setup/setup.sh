@@ -26,7 +26,7 @@ apt-get --assume-yes install lighttpd dnsmasq hostapd watchdog python3-gpiozero 
 #dpkg --purge rsyslog
 apt-get autoremove --purge
 
-pip3 install paho-mqtt
+pip3 install paho-mqtt wifi
 
 lighttpd-enable-mod cgi
 service lighttpd force-reload

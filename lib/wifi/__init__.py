@@ -30,6 +30,22 @@ def defaults():
     debug("defaults() cat default config stderr: " + repr(stderr), level = 1)
 
 
+def get_psk(ssid, password):
+    psk = None
+    # Try to encrypt the password
+    raw, stderr = cmd("sudo wpa_passphrase \"" + ssid + "\" \"" + 
+        password + "\"")[0:2]
+    debug("wifi config() wpa_cli wpa_passphrase stderr: " + repr(stderr), 
+        level = 1)
+    
+    for row in raw.split('\n'):
+        match = re_search(r'^\s*psk=(.*)$', row)
+        if match:
+            psk = match.group(1)
+            break
+    
+    return psk
+
 
 def config(ssid, password = None, enc_type = None, hidden = False):
     '''Sets up our Wi-Fi network in /etc/wpa_supplicant/wpa_supplicant.conf'''
@@ -66,7 +82,7 @@ def config(ssid, password = None, enc_type = None, hidden = False):
         debug("wifi config() wpa_cli key_mgmt NONE stderr: " + repr(stderr), 
             level = 1)
         
-        stderr = cmd(set_network + " wep_key0 " + psk)[1]
+        stderr = cmd(set_network + " wep_key0 " + get_psk(ssid, password))[1]
         debug("wifi config() wpa_cli wep_key0 stderr: " + repr(stderr), 
             level = 1)
         
@@ -75,21 +91,8 @@ def config(ssid, password = None, enc_type = None, hidden = False):
             level = 1)
     
     if enc_type in ['wpa', 'wpa2']:
-        psk = password
-        # Try to encrypt the password
-        raw, stderr = cmd("sudo wpa_passphrase \"" + ssid + "\" \"" + 
-            password + "\"")[0:2]
-        debug("wifi config() wpa_cli wpa_passphrase stderr: " + repr(stderr), 
-            level = 1)
-        
-        for row in raw.split('\n'):
-            match = re_search(r'^\s*psk=(.*)$', row)
-            if match:
-                psk = match.group(1)
-                break
-        
-        # TODO What if it fails to find any?
-        stderr = cmd(set_network + " psk " + psk)[1]
+        # TODO What if it is None
+        stderr = cmd(set_network + " psk " + get_psk(ssid, password))[1]
         debug("wifi config() wpa_cli psk stderr: " + repr(stderr), level = 1)
     
     # TODO Also set the country code. Currently US.

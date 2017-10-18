@@ -1,4 +1,5 @@
 #!/usr/bin/env python3.5
+# TODO I haven't fully tested at least run() and maybe others
 import test_suite
 import lib.debugging
 from time import time

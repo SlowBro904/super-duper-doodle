@@ -6,10 +6,10 @@ import lib.debugging
 from json import loads
 from lib.cmd import cmd
 from lib.config import config
-
-debug = lib.debugging.printmsg
+from sys import argv, exit, stderr
 
 good = test_suite.good
+debug = lib.debugging.printmsg
 
 lib.wifi.defaults()
 check = "defaults()"
@@ -20,9 +20,13 @@ debug("defaults_md5: " + repr(defaults_md5), level = 0)
 assert conf_md5 == defaults_md5, check
 good(check)
 
-# FIXME Create a test for WEP in a separate file so I can switch the network
-# FIXME Also a config for a hidden network
-with open('/root/wifi.json') as f:
+try:
+    wifi_config == argv[1]
+except KeyError:
+    stderr.write('Usage: ' + __file__ + ' /path/to/wifi_config.json')
+    exit(1)
+
+with open(wifi_config) as f:
     ssid, password = loads(f.read())
 
 lib.wifi.config(ssid = ssid, password = password, enc_type = "wpa")
@@ -32,7 +36,7 @@ assert lib.wifi.isconnected() is True, "isconnected()"
 good("isconnected()")
 
 debug("lib.wifi.ssid(): " + repr(lib.wifi.ssid()), level = 0)
-assert lib.wifi.ssid() == "ThisNetworkIsMonitored!2", "WIFI_SSID"
+assert lib.wifi.ssid() == ssid, "WIFI_SSID"
 good("WIFI_SSID")
 
 check = "IP"
@@ -50,8 +54,9 @@ debug("lib.wifi.all_APs(): " + repr(lib.wifi.all_APs()), level = 0)
 debug("len(lib.wifi.all_SSIDs()): " + repr(len(lib.wifi.all_SSIDs())),
     level = 0)
 debug("lib.wifi.all_SSIDs(): " + repr(lib.wifi.all_SSIDs()), level = 0)
-assert len(lib.wifi.all_APs()) >= len(lib.wifi.all_SSIDs()), "all_SSIDs list not right"
-good("all_SSIDs list correct length")
+good("all_SSIDs list length")
+assert len(lib.wifi.all_APs()) >= len(lib.wifi.all_SSIDs()), check
+good(check)
 
 conn_strength = int(lib.wifi.conn_strength())
 if conn_strength:

@@ -41,7 +41,7 @@ elif not cloud.isconnected():
     <li>Did your username or password recently change?
     <a href='/cgi-bin/service_account/setup.py'>Please update it</a>.</li>
     <li>Is your account still active? Please login to the ''' + device_name
-    + ''' website.</li>
+    body += ''' website.</li>
     <li>If you are still unable to connect, contact technical support.</li>
     </ul>'''
 else:
