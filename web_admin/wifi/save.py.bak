@@ -73,7 +73,7 @@ if config.conf['SERVICE_ACCOUNT_EMAIL']:
 else:
     # Service account not setup yet
     body += '''<meta http-equiv='refresh' 
-    content='0;url=/service_account/setup.cgi' />'''
+    content='0;url=/cgi-bin/service_account/setup.py' />'''
 
 sleep(30)
 lib.wifi.connect()

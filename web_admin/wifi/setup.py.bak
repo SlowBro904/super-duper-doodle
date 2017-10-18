@@ -30,7 +30,7 @@ function hide_passwords() {
 
 h1 = title
 
-body = '''<form action='/wifi/save.cgi' method='get'>
+body = '''<form action='/cgi-bin/wifi/save.py' method='get'>
 <table>'''
 
 sec_type = 'None'

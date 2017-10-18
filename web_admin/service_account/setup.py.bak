@@ -22,7 +22,7 @@ else:
 body += '''If you're not sure what this is please contact customer
 service.<br />
 <br />
-<form action='/service_account/save.cgi' method='get'>
+<form action='/cgi-bin/service_account/save.py' method='get'>
 <table>
 <tr><td>Email addresss:</td><td><input type='text' name='email' '''
 body += "value='" + config.conf['SERVICE_ACCOUNT_EMAIL'] + "' /></td></tr>"

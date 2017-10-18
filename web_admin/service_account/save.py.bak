@@ -49,6 +49,6 @@ except:
     print(web_admin.get_template() % (title, header, h1, body))
     exit()
 
-body += "<meta http-equiv='refresh' content='0;url=/home.cgi' />"
+body += "<meta http-equiv='refresh' content='0;url=/cgi-bin/home.py' />"
 
 print(web_admin.get_template() % (title, header, h1, body))

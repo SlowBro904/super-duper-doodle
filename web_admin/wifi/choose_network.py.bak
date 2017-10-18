@@ -17,7 +17,7 @@ if lib.wifi.ip():
     body += "IP address: " + lib.wifi.ip() + "<br /><br />\n"
 
 body += '''<br />
-<form action='/wifi/setup.cgi' method='get'>
+<form action='/cgi-bin/wifi/setup.py' method='get'>
 Connect to a new Wi-Fi network: <select name='ssid'>'''
 
 for this_ssid in lib.wifi.all_SSIDs():

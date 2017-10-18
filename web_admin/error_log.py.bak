@@ -33,6 +33,6 @@ for entry in errors.log:
 
 body += '''</table><br />
 <br />'''
-body += "<a href='/home.cgi'>Home</a>"
+body += "<a href='/cgi-bin/home.py'>Home</a>"
 
 print(web_admin.get_template() % (title, header, h1, body))

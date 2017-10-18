@@ -123,15 +123,20 @@ def connect():
 
 def ssid(iface = 'wlan0'):
     '''Returns the ssid'''
-    stdout, stderr = cmd('sudo /SmartBird/lib/wifi/get_SSID.sh ' + iface)[0:2]
-    debug("wifi/__init__.py ssid() stderr: " + repr(stderr), level = 1)
-    return stdout
+    with open('/etc/wpa_supplicant/wpa_supplicant.conf') as f:
+        for row in f.readlines():
+            if row.strip().startswith('ssid='):
+                # Remove the ssid=" and trailing double-quote with [6:-1]
+                return row.strip()[6:-1]
 
 
 def isconnected():
     '''See if we are connected to the wlan0 Wi-Fi network'''
-    # The [2] from cmd() is the exit status
-    return cmd('sudo /SmartBird/lib/wifi/get_wifi_connected.sh')[2] == 0
+    with open('/proc/net/wireless') as f:
+        for row in f.readlines():
+            if row.strip().startswith('wlan0'):
+                # Remove the trailing period with [:-1]
+                return row.split()[2][:-1]
 
 
 def ip(iface = 'wlan0'):

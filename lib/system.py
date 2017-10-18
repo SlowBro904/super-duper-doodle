@@ -37,10 +37,11 @@ class SystemCls(object):
         try:
             return self._serial
         except AttributeError:
-            debug("Current directory: " + repr(cmd('pwd')[0]), level = 1)
-            stdout, stderr = cmd('/SmartBird/lib/get_serial.sh')[0:2]
-            self._serial = stdout
-            debug("system.py serial() stderr: " + repr(stderr), level = 1)
+            with open('/proc/cpuinfo') as f:
+                for row in f.readlines():
+                    if row.startswith('Serial'):
+                        self._serial = row.split()[2].strip('0')
+                        break
         return self._serial
     
     

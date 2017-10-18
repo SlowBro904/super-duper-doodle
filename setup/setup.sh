@@ -21,19 +21,16 @@ apt-get update
 apt-get --assume-yes dist-upgrade
 
 # FIXME Setup the keyboard automatically, SSH at boot -- disable for prod -- and networking
-apt-get --assume-yes install lighttpd dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip python3-pigpio
+apt-get --assume-yes install dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip python3-pigpio
 #apt-get --assume-yes install rng-tools ntpdate python-arrow python-picamera busybox-syslogd
 #dpkg --purge rsyslog
 apt-get autoremove --purge
 
 pip3 install paho-mqtt wifi
 
-lighttpd-enable-mod cgi
-service lighttpd force-reload
-
 # FIXME Add specific commands not carte blanche root
-gpasswd -a www-data sudo
-gpasswd -a www-data gpio
+gpasswd -a nobody sudo
+gpasswd -a nobody gpio
 
 # Install our custom files
 cp -a boot /

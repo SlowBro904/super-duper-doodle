@@ -1,11 +1,11 @@
-import threading
+import pigpio
 from time import sleep
 import lib.debugging as debugging
-from gpiozero import LED as gpio_LED
 
 # TODO Consider using gpiozero.RGBLED
 # TODO Allow blinking
 
+pi = pigpio.pi()
 debug = debugging.printmsg
 
 class LEDs(object):
@@ -14,9 +14,13 @@ class LEDs(object):
     # TODO Do I need this now? I don't think I'm running any err in 
     # config_class.py. But I am pretty sure I will be soon. And/or maybe I
     # don't need it now that it's in a separate file?
-    good = gpio_LED(10)
-    warn = gpio_LED(11)
-    err = gpio_LED(12)
+    good = 10
+    warn = 11
+    err = 12
+    pi.set_mode(good, pigpio.OUTPUT)
+    pi.set_mode(warn, pigpio.OUTPUT)
+    pi.set_mode(err, pigpio.OUTPUT)
+    
     default = {'good': False, 'warn': False, 'err': False}
     
     def LED(self, LED_name = None, default = False):
@@ -28,12 +32,17 @@ class LEDs(object):
         '''
         if not LED_name or LED_name is 'default':
             for myLED_name, value in self.default.items():
+                if value:
+                    value = 1
+                else:
+                    value = 0
+                
                 if myLED_name is 'good':
-                    self.good.value = value
+                    pi.write(self.good, value)
                 elif myLED_name is 'warn':
-                    self.warn.value = value
+                    pi.write(self.warn, value)
                 elif myLED_name is 'err':
-                    self.err.value = value
+                    pi.write(self.err, value)
             return
         
         if default:
@@ -45,17 +54,17 @@ class LEDs(object):
             debug("self.default: '" + str(self.default) + "'", level = 1)
         
         if LED_name is 'good':
-            self.good.value = True
-            self.warn.value = False
-            self.err.value = False
+            pi.write(self.good, 1)
+            pi.write(self.warn, 0)
+            pi.write(self.err, 0)
         elif LED_name is 'warn':
-            self.good.value = False
-            self.warn.value = True
-            self.err.value = False
+            pi.write(self.good, 0)
+            pi.write(self.warn, 1)
+            pi.write(self.err, 0)
         elif LED_name is 'err':
-            self.good.value = False
-            self.warn.value = False
-            self.err.value = True
+            pi.write(self.good, 0)
+            pi.write(self.warn, 0)
+            pi.write(self.err, 1)
     
 # End of class LEDs(object)
 
