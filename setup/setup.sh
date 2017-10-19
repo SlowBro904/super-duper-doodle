@@ -27,6 +27,10 @@ apt-get autoremove --purge
 
 pip3 install paho-mqtt wifi
 
+sudo apt-get install pypy pypy-dev pypy-pkg-resources pypy-setuptools
+curl -O https://bootstrap.pypa.io/get-pip.py
+pypy -mpip install paho-mqtt wifi pigpio
+
 # FIXME Add specific commands not carte blanche root
 gpasswd -a nobody sudo
 gpasswd -a nobody gpio
