@@ -68,8 +68,6 @@ def get_data_updates(get_all = False):
     for data_file in data:
         # TODO Do general Pythonic cleanup and refactor everywhere
         #try:
-        debug("update_data.py lib.temp_file.create(data_file): '" +
-                str(lib.temp_file.create(data_file)) + "'", level = 1)
         my_temp = lib.temp_file.create(data_file)
         debug("update_data.py get_data_updates() my_temp: '" + 
                 str(my_temp) + "'", level = 1)

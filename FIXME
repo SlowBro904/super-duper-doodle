@@ -1,6 +1,3 @@
-Fix server.bind in /etc/lighttpd/lighttpd.conf and copy into the setup dir
-Add ListenAddress to sshd_config and copy into the setup dir
 Custom root password and different WPA2 password
 /boot/cmdline.txt I saw a wait option there
-How will I set time zone?
 Remove /SmartBird/server when going live... what else?

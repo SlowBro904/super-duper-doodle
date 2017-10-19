@@ -1,4 +1,3 @@
-# FIXME Alter everywhere this is used for the new behavior
 from lib.cmd import cmd
 from os import remove, rename
 import lib.debugging as debugging
@@ -44,8 +43,6 @@ def install(temp_file, target):
         
         # Install the temp as the new file
         with open(target, 'w') as f:
-            # FIXME Check where I use read() elsewhere if I should instead use
-            # readlines().
             for row in temp_fileH.readlines():
                 f.write(row)
         

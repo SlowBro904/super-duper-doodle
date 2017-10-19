@@ -11,10 +11,13 @@ testing = lib.debugging.testing
 # TODO Do I want to put this in the config?
 conf_file = '/etc/wpa_supplicant/wpa_supplicant.conf'
 
-    
+
+# TODO Improve the speed of this and config() by removing so many cmd() and
+# just build the config file in Python.
 def defaults():
     '''Backup the config and set defaults'''
     cmd("wpa_cli remove_network 0")
+    cmd("sudo wpa_cli save_config")
 
     timestamp = datetime.now().strftime('%Y-%m-%d.%H-%M')
 
@@ -123,6 +126,7 @@ def connect():
 
 def ssid(iface = 'wlan0'):
     '''Returns the ssid'''
+    ssid = None
     with open('/etc/wpa_supplicant/wpa_supplicant.conf') as f:
         for row in f.readlines():
             if row.strip().startswith('ssid='):
@@ -130,13 +134,18 @@ def ssid(iface = 'wlan0'):
                 return row.strip()[6:-1]
 
 
-def isconnected():
-    '''See if we are connected to the wlan0 Wi-Fi network'''
+def conn_strength():
+    '''Connection strength for the wlan0 Wi-Fi network'''
     with open('/proc/net/wireless') as f:
         for row in f.readlines():
             if row.strip().startswith('wlan0'):
                 # Remove the trailing period with [:-1]
                 return row.split()[2][:-1]
+
+
+def isconnected():
+    '''See if we are connected to the wlan0 Wi-Fi network'''
+    return conn_strength() != '0'
 
 
 def ip(iface = 'wlan0'):

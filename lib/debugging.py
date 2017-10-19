@@ -1,6 +1,6 @@
 # FIXME Set both to False for production
 # TODO Maybe this flag is set in a file and if that file is deleted they are
-# both False and level = 0?
+# both False and default_level = 0?
 testing = True
 enabled = True
 default_level = 0

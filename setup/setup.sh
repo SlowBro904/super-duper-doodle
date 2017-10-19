@@ -20,7 +20,6 @@ apt-get update
 # FIXME Inside update_sys.py get_sys_updates() check whether we can apt-get dist-upgrade
 apt-get --assume-yes dist-upgrade
 
-# FIXME Setup the keyboard automatically, SSH at boot -- disable for prod -- and networking
 apt-get --assume-yes install dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip python3-pigpio
 #apt-get --assume-yes install rng-tools ntpdate python-arrow python-picamera busybox-syslogd
 #dpkg --purge rsyslog
@@ -76,7 +75,7 @@ cp -a var /
 # Password.
 # FIXME Change this so it's unique to the device
 # FIXME Remove the pi username
-# FIXME Add ListenAddress to sshd_config and lighttpd.conf
+# FIXME Add ListenAddress to sshd_config and web server
 usermod -p $(echo smartbird | openssl passwd -1 -stdin) root
 
 # FIXME For watchdog enable some other sensible settings in /etc/watchdog.conf such as temperature, ping, 
@@ -96,7 +95,7 @@ usermod -p $(echo smartbird | openssl passwd -1 -stdin) root
 #insserv -r bootlogs
 #insserv -r console-setup
 
-chown www-data:www-data -R /SmartBird
+chown nobody -R /SmartBird
 
 echo "The system will now reboot..."
 sleep 3
