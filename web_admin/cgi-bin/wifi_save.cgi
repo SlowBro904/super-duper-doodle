@@ -38,14 +38,14 @@ if not ssid:
     body += '''Missing the SSID<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 if sec_type not in ['None', 'wep', 'wpa', 'wpa2']:
     body += '''Missing the security type<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 # The password might be empty so don't check that it was passed, only that
@@ -54,7 +54,7 @@ if password1 != password2:
     body += '''Passwords don't match<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 try:
@@ -65,7 +65,7 @@ except:
     contact technical support.<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 if config.conf['SERVICE_ACCOUNT_EMAIL']:
@@ -78,4 +78,4 @@ else:
 sleep(30)
 lib.wifi.connect()
 
-print(web_admin.get_template() % (title, header, h1, body))
+web_admin.show(title, header, h1, body)

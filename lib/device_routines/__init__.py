@@ -9,7 +9,7 @@ class DeviceRoutine(object):
     def __init__(self, device):
         '''This sets up an object for the routines of a particular device'''
         self.module = import_module('lib.device_routines.' + device)
-        debug("self.module: " + repr(self.module))
+        debug("self.module: " + repr(self.module), level = 1)
     
     
     def run(self, cmd, args = None):

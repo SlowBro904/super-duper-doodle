@@ -27,6 +27,6 @@ def _reboot(delay):
     
     if testing:
         # TODO Return or set some value for testing
-        debug("Simulating reboot")
+        debug("Simulating reboot", level = 1)
     else:
         cmd('reboot')

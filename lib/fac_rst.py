@@ -31,7 +31,7 @@ def _fac_rst_handler():
     if fac_rst_pin_lsnr.value is not True:
         return
     
-    debug("Proceeding to factory reset")
+    debug("Proceeding to factory reset", level = 1)
     
     leds.LED('err')
     

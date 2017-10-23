@@ -1,4 +1,5 @@
 import lib.debugging
+from os import remove
 from time import time
 from lib.err import ErrCls
 from lib.cloud import cloud
@@ -35,12 +36,41 @@ class Schedule(object):
         #                         (event_secs, 'cmd', 'args')],
         #                device: [(event_secs, 'cmd', 'args'),
         #                         (event_secs, 'cmd', 'args')]}
-        debug("schedule.py __init__() start", level = 1)
-        self.todays_events = dict()
+        debug("schedule.py __init__() -------start-------", level = 1)
         self.status = dict()
         self.schedules = dict()
+        self.todays_events = dict()
         self._next_event_time = None
-        self.todays_events_file = '/SmartBird/data/todays_events.json'
+        self.todays_executions_file = '/SmartBird/data/todays_executions.json'
+        
+        # FIXME Need a state.py module as well that records the expected state
+        # and takes action if the device is not as expected.
+        
+        # FIXME If we have something in the file it does not check whether 
+        # there is something new scheduled. So I ran it, it removed from todays
+        # events, I cancelled it, I then updated the schedule server-side and
+        # ran it again, it won't run, says door is [].
+        today = datetime.now().weekday()
+        try:
+            with open(self.todays_executions_file) as f:
+                self.todays_executions = loads(f.read())
+            
+            # Check that it's not zero length
+            len(self.todays_executions)
+            
+            if ('day' in self.todays_executions and 
+                self.todays_executions['day'] is not today):
+                debug("schedule.py __init__() todays_executions_file " + 
+                    "was from yesterday, will destroy that and create a new " +
+                    "variable.", level = 1)
+                remove(self.todays_executions_file)
+                self.todays_executions = {'day': today}
+        except (OSError, TypeError):
+            # FIXME What about events close to midnight that are between today
+            # and tomorrow, is there a concern scheduling by the day?
+            debug("schedule.py __init__() todays_executions_file not found, " +
+                "will create a new variable.", level = 1)
+            self.todays_executions = {'day': today}
         
         for device in devices:
             try:
@@ -53,13 +83,14 @@ class Schedule(object):
                 temp_sched = dict()
             
             debug("schedule.py __init__() temp_sched: " + repr(temp_sched),
-                level = 0)
+                level = 1)
             
             for schedule, command in temp_sched.items():
                 # Keys are stored comma-delimited in the JSON. Split out.
                 # And convert to int() in the process.
                 schedule = tuple(int(x) for x in schedule.split(','))
-                debug("schedule.py __init__() schedule: " + repr(schedule))
+                debug("schedule.py __init__() schedule: " + repr(schedule), 
+                    level = 1)
                 
                 if device not in self.schedules:
                     self.schedules[device] = dict()
@@ -68,17 +99,30 @@ class Schedule(object):
             
             try:
                 debug("schedule.py __init__() self.schedules[device]: " +
-                        repr(self.schedules[device]), level = 0)
-                self.todays_events[device] = self.get_todays_events(device)
-                debug("schedule.py __init__() self.todays_events: " + 
-                    repr(self.todays_events), level = 0)
+                        repr(self.schedules[device]), level = 1)
             except KeyError:
                 debug("schedule.py __init__() No data file or no schedule", 
-                    level = 0)
+                    level = 1)
                 pass
-        debug("schedule.py __init__() end", level = 1)
+            
+            self.todays_events[device] = self.get_todays_events(device)
+            debug("schedule.py __init__() self.todays_events: " + 
+                repr(self.todays_events), level = 1)
+            
+            try:
+                self.todays_executions[device]
+            except KeyError:
+                debug("schedule.py __init__() Since device not in " +
+                    "self.todays_executions will create a new list.", 
+                    level = 1)
+                self.todays_executions[device] = list()
+        
+        debug("schedule.py __init__() self.todays_executions: " + 
+            repr(self.todays_executions))
+        debug("schedule.py __init__() -------end-------", level = 1)
     
     
+    # TODO Should this be a @property instead?
     def get_todays_events(self, device):
         '''Gives us the events scheduled for today in the future.
         
@@ -89,14 +133,6 @@ class Schedule(object):
         now = datetime.now()
         today = now.weekday()
         
-        try:
-            with open(self.todays_events_file) as f:
-                todays_events = loads(f.read())
-            len(todays_events)
-        except OSError, TypeError:
-            # Don't have these on disk or can't read the file. Create it new.
-            pass
-            
         now_secs = now.second
         
         todays_events = list()
@@ -107,16 +143,20 @@ class Schedule(object):
             if event_weekday is not today:
                 debug("schedule.py get_todays_events() event_time (" +
                     repr(event_time) + ")" +
-                    "event_weekday (" + repr(event_weekday) + 
-                    ") is not today (" + repr(today) + ")", level = 0)
+                    " event_weekday (" + repr(event_weekday) + 
+                    ") is not today (" + repr(today) + ")", level = 1)
                 continue
+            debug("schedule.py get_todays_events() event_time (" +
+                repr(event_time) + ")" +
+                " event_weekday (" + repr(event_weekday) + 
+                ") is for today (" + repr(today) + ")", level = 1)
             
             event_secs = self.tuple_to_secs(event_time)
             
             cmd, args = self.schedules[device][event_time]
             
             # FIXME How do I ensure they are sorted by time?
-            todays_events.append((event_secs, cmd, args))
+            todays_events.append([event_secs, cmd, args])
         
         return todays_events
     
@@ -157,7 +197,7 @@ class Schedule(object):
         # Get all schedules for all devices
         all_event_times = [x[0] for x in self.todays_events[device]]
         debug("schedule.py get_due() all_event_times: " + 
-            repr(all_event_times), level = 0)
+            repr(all_event_times), level = 1)
         
         # Add a buffer to avoid a race condition if there is an event that
         # occurs between now and when the system goes to sleep.
@@ -166,20 +206,20 @@ class Schedule(object):
         stop_time = int(time()) + config.conf['SCHEDULE_BUFFER']
         
         debug("schedule.py get_due() int(time()): " + repr(int(time())), 
-            level = 0)
+            level = 1)
         debug("schedule.py get_due() config.conf['SCHEDULE_BUFFER']: " + 
-            repr(config.conf['SCHEDULE_BUFFER']), level = 0)
+            repr(config.conf['SCHEDULE_BUFFER']), level = 1)
         
-        debug("schedule.py get_due() stop_time: " + repr(stop_time), level = 0)
+        debug("schedule.py get_due() stop_time: " + repr(stop_time), level = 1)
         
         # Get times for all devices that are between now and stop_time
         all_due = [x for x in all_event_times if x <= stop_time]
-        debug("schedule.py get_due() all_due: " + repr(all_due), level = 0)
+        debug("schedule.py get_due() all_due: " + repr(all_due), level = 1)
         
         # Now for all due times for all devices for this device,
         device_due = [x[0] for x in self.todays_events[device] if x[0] in all_due]
         debug("schedule.py get_due() device_due: " + repr(device_due),
-            level = 0)
+            level = 1)
         
         return device_due
     
@@ -202,6 +242,7 @@ class Schedule(object):
     
     def run(self):
         '''Run any events that are due now'''
+        debug("schedule.py run() -----start-----", level = 1)
         # TODO I might want a per-device retry but quite difficult to implement
         # so let's wait 'til we need it
         device_retries = config.conf['DEVICE_RETRIES']
@@ -214,63 +255,90 @@ class Schedule(object):
         # happen is we finish an event and the schedule starts for the next 
         # event. We want to keep checking until there are no more items
         # scheduled.
-        items_scheduled = False
         while True:
+            debug("schedule.py run() -----while True-----", 
+                level = 1)
             debug("schedule.py run() self.todays_events: " + 
-                repr(self.todays_events), level = 0)
+                repr(self.todays_events), level = 1)
+            
+            # We have not yet determined if any events have been scheduled
+            # under any device.
+            items_scheduled = False
             
             # TODO Run devices in parallel
             for device in self.todays_events:
-                debug("schedule.py run() starting loop on device " + 
-                    repr(device), level = 0)
+                debug("schedule.py run() " +
+                    "-----for device in self.todays_events-----", 
+                    level = 1)
                 
                 # Logic to know when to stop executing the for loop device in 
                 # self.todays_events. If this is empty we are done with events
                 # that are due right now.
-                debug("len(self.todays_events[device]): " + 
-                    repr(len(self.todays_events[device])), level = 0)
+                debug("schedule.py run() len(self.todays_events[device]): " + 
+                    repr(len(self.todays_events[device])), level = 1)
                 
                 if len(self.todays_events[device]) == 0:
                     debug("len(self.todays_events[device]) == 0 so we are " +
                         "done executing on due items for this device.", 
-                        level = 0)
+                        level = 1)
                     items_scheduled = False
                     break
                 
                 due = self.get_due(device)
-                debug("schedule.py run() due: " + repr(due))
+                debug("schedule.py run() due: " + repr(due), level = 1)
                 
                 if not due:
                     debug("schedule.py run() No schedules due for " + 
-                        str(device) + ", going to the next device", level = 0)
+                        str(device) + ", going to the next device", level = 1)
                     continue
                 
-                # At least one item was scheduled
-                items_scheduled = True
+                device_routine = DeviceRoutine(device)
                 
                 # Get our command and arguments
                 for event_secs in due:
+                    debug("schedule.py run() -----for event_secs in due-----", 
+                        level = 1)
                     debug("schedule.py run() event_secs: " + repr(event_secs), 
-                        level = 0)
+                        level = 1)
                     debug("schedule.py run() self.schedules[device]: " + 
-                        repr(self.schedules[device]), level = 0)
+                        repr(self.schedules[device]), level = 1)
                     
                     # Convert each key in the self.schedules dict into seconds
                     # since epoch
-                    schedules = {self.tuple_to_secs(k): v for k, v in self.schedules[device].items()}
+                    schedules = {self.tuple_to_secs(k): v for k, 
+                        v in self.schedules[device].items()}
                     debug("schedule.py run() schedules: " + repr(schedules), 
-                        level = 0)
+                        level = 1)
                     
                     event = schedules[event_secs]
-                    debug("schedule.py run() event: " + repr(event), level = 0)
+                    debug("schedule.py run() event: " + repr(event), level = 1)
                     
                     cmd, args = event
-                    debug("schedule.py run() cmd: " + repr(cmd), level = 0)
-                    debug("schedule.py run() args: " + repr(args), level = 0)
+                    debug("schedule.py run() cmd: " + repr(cmd), level = 1)
+                    debug("schedule.py run() args: " + repr(args), level = 1)
                     
-                    device_routine = DeviceRoutine(device)
+                    debug("schedule.py run() self.todays_executions: " +
+                        repr(self.todays_executions), level = 1)
+                    debug("schedule.py run() " +
+                        "type(self.todays_executions[device]): " +
+                        repr(type(self.todays_executions[device])), level = 1)
                     
-                    # FIXME This runs more than once
+                    if [event_secs,cmd,args] in self.todays_executions[device]:
+                        debug("schedule.py run() This event (" + 
+                            repr((event_secs, cmd, args)) + ") has already " +
+                            "executed today. Skipping this execution.",
+                            level = 1)
+                        # Next event_secs
+                        continue
+                    debug("schedule.py run() This event (" + 
+                        repr([event_secs, cmd, args]) + ") has not yet " +
+                        "executed today. Executing now.", level = 1)
+                    
+                    # At least one item was scheduled
+                    items_scheduled = True
+                    
+                    # FIXME Can I measure where current > 0? To ensure the
+                    # motors are even running at all.
                     status = device_routine.run(cmd, args)
                     debug("schedule.py run() status: " + repr(status),
                         level = 1)
@@ -279,17 +347,27 @@ class Schedule(object):
                     # FIXME Review my QoS levels. Is 1 a problem?
                     cloud.send(device + '_status', status)
                     
-                # Remove what we just executed
-                self.todays_events[device].remove((event_secs, cmd, args))
-            
-            with open(self.todays_events_file, 'w') as f:
-                f.write(dumps(self.todays_events))
-            debug("Wrote to self.todays_events_file.", level = 1)
+                    # Note what we just executed
+                    try:
+                        self.todays_executions[device].append([event_secs, cmd, 
+                            args])
+                    except KeyError:
+                        self.todays_executions[device] = [[event_secs, cmd, 
+                            args]]
+                    debug("schedule.py run() self.todays_executions: " +
+                        repr(self.todays_executions), level = 1)
             
             # Logic to know when to stop executing the outer while loop. If
-            # this never gets set in this for loop we know we have no items
+            # this never gets set in the for loops we know we have no items
             # scheduled under any device, and so we can exit the while loop
             # as well.
             if not items_scheduled:
-                debug("schedule.py run() items_scheduled is False", level = 0)
+                debug("schedule.py run() items_scheduled is False", level = 1)
                 break
+            debug("schedule.py run() items_scheduled is True", level = 1)
+        
+        if items_scheduled:
+            debug("schedule.py run() At least one item was scheduled.")
+            with open(self.todays_executions_file, 'w') as f:
+                f.write(dumps(self.todays_executions))
+            debug("Wrote to self.todays_executions_file.", level = 1)

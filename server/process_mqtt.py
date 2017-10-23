@@ -20,7 +20,7 @@ now = datetime.now()
 today = str(now.weekday())
 hour = str(now.hour)
 # FIXME Unless > 59
-minute = str(now.minute + 2)
+minute = str(now.minute + 1)
 
 # FIXME I will update the local data file but where do I
 # remove completed items, do I do that?
@@ -29,7 +29,7 @@ device_data = {'SB':
                 {'4490b3be':
                     {'0.0.0': 
                         {'door.json':
-                            {today + ',' + hour + ',' + minute: ('run', 'dn')}
+                            {today + ',' + hour + ',' + minute: ('operate', 'dn')}
                         }
                     }
                 }

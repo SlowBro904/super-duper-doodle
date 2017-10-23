@@ -57,8 +57,7 @@ class CloudCls(object):
         # Be aware that mqtt.get() returns a byte object
         result = mqtt.get(topic)
         
-        # FIXME Revert to debug()
-        #debug("result: '" + str(result) + "'")#, level = 0)
+        debug("result: " + repr(result), level = 1)
         
         return result
         ## TODO This may be a bit cleaner if we try/except on the error
@@ -67,6 +66,5 @@ class CloudCls(object):
         #    return result
 # End of CloudCls
 
-# FIXME Ensure I only import cloud everywhere
 cloud = CloudCls()
 cloud.connect()

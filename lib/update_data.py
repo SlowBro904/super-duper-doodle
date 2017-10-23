@@ -29,7 +29,9 @@ def get_data_updates(get_all = False):
             get_all = loads(f.read())
         
         remove(get_all_flag)
-    except OSError:
+    except (OSError, IOError):
+        # FIXME Entire error:
+        # IOError: [Errno 2] No such file or directory
         # Does not exist, ignore
         pass
     
@@ -81,8 +83,8 @@ def get_data_updates(get_all = False):
                         str(listdir('/tmp')) + "'", level = 1)
                 success = True
         
+        # FIXME Some error somewhere
         if not success:
-            # FIXME Some error somewhere
             remove(my_temp)
         else:
             # TODO Maybe make this an exception

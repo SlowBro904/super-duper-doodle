@@ -20,16 +20,16 @@ apt-get update
 # FIXME Inside update_sys.py get_sys_updates() check whether we can apt-get dist-upgrade
 apt-get --assume-yes dist-upgrade
 
-apt-get --assume-yes install dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip python3-pigpio
-#apt-get --assume-yes install rng-tools ntpdate python-arrow python-picamera busybox-syslogd
+apt-get --assume-yes install dnsmasq hostapd watchdog python3-gpiozero python3-smbus python3-smbus python3-dev i2c-tools python3-pip python3-pigpio rng-tools
+#apt-get --assume-yes install ntpdate python-arrow python-picamera busybox-syslogd
 #dpkg --purge rsyslog
 apt-get autoremove --purge
 
 pip3 install paho-mqtt wifi
 
-sudo apt-get install pypy pypy-dev pypy-pkg-resources pypy-setuptools
-curl -O https://bootstrap.pypa.io/get-pip.py
-pypy -mpip install paho-mqtt wifi pigpio
+#sudo apt-get install pypy pypy-dev pypy-pkg-resources pypy-setuptools
+#curl -O https://bootstrap.pypa.io/get-pip.py
+#pypy -mpip install paho-mqtt wifi pigpio
 
 # FIXME Add specific commands not carte blanche root
 gpasswd -a nobody sudo
@@ -38,8 +38,13 @@ gpasswd -a nobody gpio
 # Install our custom files
 cp -a boot /
 cp -a etc /
-cp -a lib /
-cp -a var /
+#cp -a lib /
+#cp -a var /
+
+# FIXME Update MAC address in /etc/udev/rules.d/70*
+# FIXME Daemons only listen on 1.1.1.1 AND setup firewall rules
+
+update-rc.d ap defaults
 
 # FIXME Time zone. tzselect is the command.
 # You can make this change permanent for yourself by appending the line
@@ -100,6 +105,10 @@ usermod -p $(echo smartbird | openssl passwd -1 -stdin) root
 #insserv -r console-setup
 
 chown nobody -R /SmartBird
+find /SmartBird -type f -name "*.py" -exec chmod 755 "{}" \;
+find /SmartBird -type f -name "*.sh" -exec chmod 755 "{}" \;
+find /SmartBird -type f -name "*.cgi" -exec chmod 755 "{}" \;
+chown nobody /etc/wpa_supplicant/wpa_supplicant.conf
 
 echo "The system will now reboot..."
 sleep 3

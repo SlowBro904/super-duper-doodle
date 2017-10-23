@@ -28,14 +28,14 @@ if not password1:
     body += '''Missing the password<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 if password1 != password2:
     body += '''Passwords don't match<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 try:
@@ -46,9 +46,9 @@ except:
     contact technical support.<br />
     <button onclick='window.history.back();'>Go back</button>'''
     
-    print(web_admin.get_template() % (title, header, h1, body))
+    web_admin.show(title, header, h1, body)
     exit()
 
 body += "<meta http-equiv='refresh' content='0;url=/cgi-bin/home.cgi' />"
 
-print(web_admin.get_template() % (title, header, h1, body))
+web_admin.show(title, header, h1, body)

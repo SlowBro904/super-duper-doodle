@@ -1,4 +1,11 @@
 #!/usr/bin/env python3.5
+# TODO Improve loading speed:
+# * Switch to 2.7
+# * Switch to PyPy
+# * Profile
+# * Test compiling the worst offenders to Cython
+# * Refactor the worst offenders
+
 import __init__ as web_admin
 
 import lib.wifi
@@ -60,4 +67,4 @@ body += '''<br />
 body += device_name + " version " + version + " | "
 body += " Serial number " + serial
 
-print(web_admin.get_template() % (title, header, h1, body))
+web_admin.show(title, header, h1, body)

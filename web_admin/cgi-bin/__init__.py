@@ -13,10 +13,11 @@ from lib.config import config
 from re import search as re_search
 from urllib.parse import urlparse, parse_qs
 
-
 err = ErrCls()
 form = cgi.FieldStorage()
+params = cgi.FieldStorage()
 debug = lib.debugging.printmsg
+
 
 def get_template():
     '''Returns our template as a string'''
@@ -60,9 +61,8 @@ def status():
     return True
 
 
-# Boilerplate for all web pages
-params = cgi.FieldStorage()
-
-print('Content-type: text/html\r\n')
-# FIXME Needed?
-#print('Content-length: ' + str(len(web_page_content)) + '\r\n')
+def show(title, header, h1, body):
+    content = get_template() % (title, header, h1, body)
+    print('Content-type: text/html\r\nContent-length: ' + 
+            str(len(content)) + '\r\n')
+    print(content)

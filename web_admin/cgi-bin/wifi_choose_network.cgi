@@ -38,4 +38,4 @@ body += '''  <option value='*****N/A*****'>---</option>
   <option value='*****Hidden_network*****'>Hidden network</option>
 </select> <input type='submit' value='Next' /></form>'''
 
-print(web_admin.get_template() % (title, header, h1, body))
+web_admin.show(title, header, h1, body)

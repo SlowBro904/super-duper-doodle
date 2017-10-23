@@ -29,7 +29,7 @@ class Config(object):
             open(self.config_file)
             debug("Successfully opened our config file", level = 1)
         except OSError:
-            debug("Resetting to defaults")
+            debug("Resetting to defaults", level = 1)
             # TODO What if even this fails
             self.reset_to_defaults()
         

@@ -35,4 +35,4 @@ body += '''<tr><td>Password: </td><td><div align='right'>
 </form>
 </table>'''
 
-print(web_admin.get_template() % (title, header, h1, body))
+web_admin.show(title, header, h1, body)

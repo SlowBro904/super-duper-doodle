@@ -17,7 +17,6 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-/SmartBird/wifi/store_ssids.sh
 printf "Starting software Watchdog"
 /usr/sbin/service watchdog start &
 exit 0

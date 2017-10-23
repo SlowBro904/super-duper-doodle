@@ -48,37 +48,37 @@ class MotorCls(object):
             timeout = self.timeout
         
         if direction == 'up':
-            debug("Direction is up.")
-            debug("Before setting:")
-            debug("motor.value: '" + str(motor.value) + "'")
+            debug("door.py run() Direction is up.", level = 0)
+            debug("Before setting:", level = 1)
+            debug("motor.value: '" + str(motor.value) + "'", level = 1)
             motor.forward()
-            debug("After setting:")
-            debug("motor.value: '" + str(motor.value) + "'")
+            debug("After setting:", level = 1)
+            debug("motor.value: '" + str(motor.value) + "'", level = 1)
         elif direction == 'dn':
-            debug("Direction is dn.")
-            debug("Before setting:")
-            debug("motor.value: '" + str(motor.value) + "'")
+            debug("door.py run() Direction is dn.", level = 0)
+            debug("Before setting:", level = 1)
+            debug("motor.value: '" + str(motor.value) + "'", level = 1)
             motor.backward()
-            debug("After setting:")
-            debug("motor.value: '" + str(motor.value) + "'")
+            debug("After setting:", level = 1)
+            debug("motor.value: '" + str(motor.value) + "'", level = 1)
         else:
-            # Stop
             motor.stop()
         
         start_time = current_time()
         
         while True:
             if current_time() >= (start_time + timeout):
-                debug("Motor timed out", level = 1)
+                debug("door.py run() Motor timed out", level = 0)
+                self.stop()
                 return False
             
             # If the status shows we are completely in the direction requested
             if lib.door_reed_switches.status() == direction:
-                debug("door_reed_switches.status() == direction. Stopping.",
-                    level = 1)
+                debug("door.py run() door_reed_switches.status()==direction." +
+                        "Stopping.", level = 0)
                 debug("motor.value: '" + str(motor.value) + "'", level = 1)
                 self.stop()
-                break
+                return True
             
             # Constantly monitor the current and if it is out of range stop,
             # reverse for three seconds, then try again
@@ -97,7 +97,7 @@ class MotorCls(object):
                     self.run(direction = reverse, timeout = 3)
                 except RuntimeError:
                     # FIXME Error here
-                    debug("Door stuck", level = 1)
+                    debug("door.py run() Door stuck", level = 0)
                     # FIXME Test the finally here. Will it execute?
                     return False
                 finally:
@@ -108,11 +108,12 @@ class MotorCls(object):
     
     def stop(self):
         '''Stops all motors'''
-        debug("Before stopping:")
-        debug("motor.value: '" + str(motor.value) + "'")
+        debug("door.py stop() Stopping.", level = 0)
+        debug("Before stopping:", level = 1)
+        debug("motor.value: '" + str(motor.value) + "'", level = 1)
         motor.stop()
-        debug("After stopping:")
-        debug("motor.value: '" + str(motor.value) + "'")
+        debug("After stopping:", level = 1)
+        debug("motor.value: '" + str(motor.value) + "'", level = 1)
     
     
     @property

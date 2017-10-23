@@ -79,4 +79,4 @@ body += '''<tr id='password1' style='display:none'><td>Password: </td><td>
 if sec_type != 'None':
     body += '''<script>show_passwords();</script>'''
 
-print(web_admin.get_template() % (title, header, h1, body))
+web_admin.show(title, header, h1, body)

@@ -50,7 +50,7 @@ try:
 except OSError:
     # TODO Entire error is OSError: error renaming file
     # '/SmartBird/config.json' to '/SmartBird/config.good.json'
-    debug("Couldn't rename config.json to config.good.json")
+    debug("Couldn't rename config.json to config.good.json", level = 1)
     pass
 
 with open('/SmartBird/config/config.good.json') as g:
